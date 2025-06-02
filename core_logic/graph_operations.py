@@ -1,4 +1,3 @@
-# mon_projet_livraison/core_logic/graph_operations.py
 import os
 import random
 import numpy as np
@@ -113,7 +112,6 @@ def prepare_graph_data_timed(G: nx.MultiDiGraph,
 
 
 def extract_delivery_node_coords(G: nx.MultiDiGraph) -> tuple[np.ndarray, list]:
-    # ... (fonction inchangée) ...
     coords, node_ids_with_coords = [], []
     for node_id, data in G.nodes(data=True):
         if data.get('delivery_type') == 'delivery':

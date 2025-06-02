@@ -1,8 +1,7 @@
-# mon_projet_livraison/core_logic/visualization.py
 import os
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-import networkx as nx # Bien que G_projected soit MultiDiGraph, les opérations sont génériques
+import networkx as nx
 import osmnx as ox   # Pour ox.plot_graph
 
 # Importer depuis le module utils dans le même package core_logic

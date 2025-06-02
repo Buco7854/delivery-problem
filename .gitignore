@@ -2,5 +2,5 @@
 .venv
 core_output/*
 core_output_web/*
-web_app/cache/*
+cache/*
 __pycache__/

@@ -1,4 +1,3 @@
-# mon_projet_livraison/core_logic/pipeline.py
 from . import graph_operations, routing_algorithms, visualization, utils # Assurez-vous que utils est importé
 import os
 import random
