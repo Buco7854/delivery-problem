@@ -59,11 +59,6 @@ def index():
 
         # Préparer les URLs des médias pour le template
         # Vérifier si le chemin existe avant de créer l'URL
-        if results_data.get("gif_path") and os.path.exists(results_data["gif_path"]):
-            results_data["gif_url"] = url_for('serve_media', filename=os.path.basename(results_data["gif_path"]))
-        else:
-            results_data["gif_url"] = None # ou une image placeholder
-
         if results_data.get("mp4_path") and os.path.exists(results_data["mp4_path"]):
             results_data["mp4_url"] = url_for('serve_media', filename=os.path.basename(results_data["mp4_path"]))
         else:

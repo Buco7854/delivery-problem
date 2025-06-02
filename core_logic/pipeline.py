@@ -17,7 +17,7 @@ def execute_main_pipeline(city_name: str, network_type: str, output_folder: str,
     # 1. Charger le graphe
     G_initial = graph_operations.load_or_download_graph_timed(city_name, network_type, output_folder)
     if not G_initial:
-        return {"error": f"Impossible de charger le graphe pour {city_name}.", "gif_path": None, "mp4_path": None, "graph_path": None, "stats": {}, "profiling_data": utils.PROF_DATA.copy()}
+        return {"error": f"Impossible de charger le graphe pour {city_name}.", "mp4_path": None, "graph_path": None, "stats": {}, "profiling_data": utils.PROF_DATA.copy()}
 
     # 2. Preparer les données de livraison (modifie G_initial ou une copie, et retourne la référence)
     G_prepared, delivery_nodes_ids = graph_operations.prepare_graph_data_timed(
@@ -27,12 +27,12 @@ def execute_main_pipeline(city_name: str, network_type: str, output_folder: str,
         truck_capacity=truck_capacity
     )
     if not delivery_nodes_ids:
-        return {"error": "Aucun point de livraison sélectionné/configuré.", "gif_path": None, "mp4_path": None, "graph_path": None, "stats": {}, "profiling_data": utils.PROF_DATA.copy()}
+        return {"error": "Aucun point de livraison sélectionné/configuré.", "mp4_path": None, "graph_path": None, "stats": {}, "profiling_data": utils.PROF_DATA.copy()}
 
     # 3. Clustering
     X_coords, delivery_node_ids_for_clustering = graph_operations.extract_delivery_node_coords(G_prepared)
     if X_coords.shape[0] == 0:
-        return {"error": "Les points de livraison n'ont pas de coordonnées pour le clustering.", "gif_path": None, "mp4_path": None, "graph_path": None, "stats": {}, "profiling_data": utils.PROF_DATA.copy()}
+        return {"error": "Les points de livraison n'ont pas de coordonnées pour le clustering.", "mp4_path": None, "graph_path": None, "stats": {}, "profiling_data": utils.PROF_DATA.copy()}
 
     valid_cr = [n for n in cluster_range_input if 1 < n < X_coords.shape[0]]
     best_n_clusters = routing_algorithms.perform_silhouette_analysis_timed(X_coords, valid_cr) if valid_cr else (2 if X_coords.shape[0]>=2 else 1)
@@ -53,7 +53,7 @@ def execute_main_pipeline(city_name: str, network_type: str, output_folder: str,
         G_clustered.nodes[start_node_osmid].update({'delivery_type':'warehouse', 'cluster_id':0, 'status':'warehouse_active'})
         warehouse_node_ids = [start_node_osmid]
     elif not warehouse_node_ids:
-        return {"error": "Aucun entrepôt ou point de livraison pour démarrer la route.", "gif_path": None, "mp4_path": None, "graph_path": None, "stats": {}, "profiling_data": utils.PROF_DATA.copy()}
+        return {"error": "Aucun entrepôt ou point de livraison pour démarrer la route.", "mp4_path": None, "graph_path": None, "stats": {}, "profiling_data": utils.PROF_DATA.copy()}
     else:
         start_node_osmid = random.choice(warehouse_node_ids)
 
@@ -66,13 +66,13 @@ def execute_main_pipeline(city_name: str, network_type: str, output_folder: str,
         G_clustered, warehouse_node_ids, delivery_nodes_ids, truck_capacity
     )
     if not route_nodes:
-        return {"error": "Le calcul de la route a échoué.", "gif_path": None, "mp4_path": None, "graph_path": None, "stats": {}, "profiling_data": utils.PROF_DATA.copy()}
+        return {"error": "Le calcul de la route a échoué.", "mp4_path": None, "graph_path": None, "stats": {}, "profiling_data": utils.PROF_DATA.copy()}
 
     G_final_state = G_clustered
 
     # 6. Visualisation
     map_file_basename = os.path.join(output_folder, f"{utils.normalize_city_name(city_name)}_{network_type}")
-    gif_filepath, mp4_filepath = visualization.visualize_route_matplotlib_timed(
+    mp4_filepath = visualization.visualize_route_matplotlib_timed(
         G_final_state, route_nodes, start_node_osmid,
         map_filename_base=map_file_basename,
         animation_interval=animation_interval
@@ -121,7 +121,6 @@ def execute_main_pipeline(city_name: str, network_type: str, output_folder: str,
 
     results = {
         "message": "Pipeline exécuté." if saved_graph_path else "Pipeline exécuté, mais sauvegarde du graphe échouée.",
-        "gif_path": gif_filepath,
         "mp4_path": mp4_filepath,
         "graph_path": saved_graph_path,
         "stats": {

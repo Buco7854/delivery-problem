@@ -25,11 +25,10 @@ def visualize_route_matplotlib_timed(G_projected: nx.MultiDiGraph, route_nodes: 
     if not route_nodes:
         # print("Route is empty, cannot visualize with Matplotlib.") # Moins de verbosité
         return None, None # Pas de GIF, pas de MP4
-
+    print("Starting plot")
     fig, ax = ox.plot_graph(G_projected, show=False, close=False,
                             edge_color="gray", edge_alpha=0.3, edge_linewidth=0.5,
                             node_size=0, bgcolor="w") # Fond blanc explicite
-
     delivery_plots = {} # Pour stocker les objets scatter des maisons
 
     warehouse_x, warehouse_y = [], []
@@ -44,12 +43,14 @@ def visualize_route_matplotlib_timed(G_projected: nx.MultiDiGraph, route_nodes: 
             delivery_plots[node_id] = sc
 
     if warehouse_x:
+        print("Scattering")
         ax.scatter(warehouse_x, warehouse_y, c='blue', s=120, marker='s', ec='black', zorder=4) # Taille un peu augmentée
 
     truck_plot, = ax.plot([], [], 'o', color='red', markersize=10, zorder=5)
     trail_plot, = ax.plot([], [], '-', color='red', linewidth=2.5, alpha=0.7, zorder=2) # Ligne un peu plus épaisse
 
     # S'assurer que tous les nœuds de la route ont des coordonnées
+    print("Checking coordinates")
     valid_route_nodes_for_coords = [node_id for node_id in route_nodes if node_id in G_projected.nodes and 'x' in G_projected.nodes[node_id] and 'y' in G_projected.nodes[node_id]]
     if len(valid_route_nodes_for_coords) != len(route_nodes):
         # print(f"Warning: {len(route_nodes) - len(valid_route_nodes_for_coords)} route nodes missing coordinates. Animation might be incomplete.")
@@ -89,7 +90,7 @@ def visualize_route_matplotlib_timed(G_projected: nx.MultiDiGraph, route_nodes: 
     ]
     ax.legend(handles=legend_handles, loc='upper left', bbox_to_anchor=(1.02, 1), borderaxespad=0., fontsize='small')
 
-    blit_enabled = False # blit=False est plus stable et plus simple à déboguer
+    blit_enabled = True # blit=False est plus stable et plus simple à déboguer
 
     def update(frame_num):
         # nonlocal serviced_in_animation # Pas nécessaire en Python 3 si on ne réassigne pas serviced_in_animation lui-même
@@ -130,21 +131,9 @@ def visualize_route_matplotlib_timed(G_projected: nx.MultiDiGraph, route_nodes: 
 
     # Création de l'animation
     # Note: 'ani' est déjà défini au niveau du module
+    print("Creating animation")
     ani = animation.FuncAnimation(fig, update, frames=len(route_nodes),
                                   interval=animation_interval, blit=blit_enabled, repeat=False)
-
-    # Sauvegarde en GIF
-    gif_filepath = f"{map_filename_base}.gif"
-    gif_saved_path = None
-    # print(f"Attempting to save GIF to {gif_filepath}...") # Moins de verbosité
-    try:
-        calculated_fps = max(1, int(1000 / animation_interval)) # S'assurer qu'au moins 1 fps
-        ani.save(gif_filepath, writer='pillow', fps=calculated_fps)
-        # print(f"GIF Animation saved to '{gif_filepath}'")
-        gif_saved_path = gif_filepath
-    except Exception as e:
-        # print(f"Could not save GIF: {e}. Pillow (pip install pillow) might be missing. Skipping GIF.")
-        gif_saved_path = None
 
     # Sauvegarde en MP4 (si ffmpeg est disponible)
     mp4_filepath = f"{map_filename_base}.mp4"
@@ -162,17 +151,17 @@ def visualize_route_matplotlib_timed(G_projected: nx.MultiDiGraph, route_nodes: 
             pass # Erreur lors de la vérification, on suppose qu'il n'est pas là
 
         if ffmpeg_available:
-            # print(f"Attempting to save MP4 to {mp4_filepath} (requires ffmpeg)...") # Moins de verbosité
+            print(f"Attempting to save MP4 to {mp4_filepath} (requires ffmpeg)...") # Moins de verbosité
             calculated_fps_mp4 = max(5, int(1000 / animation_interval)) # Au moins 5 fps pour une vidéo
             ani.save(mp4_filepath, writer='ffmpeg', fps=calculated_fps_mp4, dpi=150) # DPI pour meilleure qualité
-            # print(f"MP4 Animation saved to '{mp4_filepath}'")
+            print(f"MP4 Animation saved to '{mp4_filepath}'")
             mp4_saved_path = mp4_filepath
-        # else:
-        # print("ffmpeg not found or not configured. Skipping MP4 save.")
+        else:
+            print("ffmpeg not found or not configured. Skipping MP4 save.")
     except Exception as e:
         # print(f"Could not save MP4: {e}. Ensure ffmpeg is installed and in PATH. Skipping MP4.")
         mp4_saved_path = None
 
     plt.close(fig) # Très important pour libérer la mémoire, surtout si appelée en boucle ou par un serveur
 
-    return gif_saved_path, mp4_saved_path
+    return mp4_saved_path
